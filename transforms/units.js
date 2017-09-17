@@ -1,17 +1,10 @@
-/* eslint-disable no-param-reassign */
-/* eslint comma-dangle: ["error", {
-  "arrays": "always-multiline",
-  "objects": "always-multiline",
-  "imports": "always-multiline",
-  "exports": "always-multiline"
-}] */
 const postcss = require('postcss')
 const _ = require('lodash/fp')
 
 const tagTypes = {
   Identifier: node => node,
   CallExpression: node => node.callee,
-  MemberExpression: node => node.object,
+  MemberExpression: node => node.object
 }
 
 const importSpecifiers = ['ImportDefaultSpecifier', 'ImportSpecifier']
