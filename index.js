@@ -1,6 +1,6 @@
-console.log(`styled-components-native-code-mod cannot be used on its own. Please use the following steps,
+console.log(`emotion-composes-codemod cannot be used on its own. Please use the following steps,
 
 npm install -g jscodeshift
-npm install https://github.com/styled-components/styled-components-native-code-mod
-jscodeshift -t styled-components-native-code-mod/transforms/units <path>
+npm install https://github.com/emotion-js/emotion-composes-codemod
+jscodeshift -t emotion-composes-codemod/transforms/composes <path>
 `)
