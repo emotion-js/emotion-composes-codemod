@@ -17,30 +17,38 @@ module.exports = (file, api) => {
     j.templateElement({ cooked: JSON.stringify(raw).slice(1, -1), raw }, tail)
   )
 
-  ast.find(j.TaggedTemplateExpression).forEach(path => {
-    const { quasi, tag } = path.node
-    if (!(tag.type in tagTypes)) return
+  ast.find(j.TemplateLiteral).forEach(path => {
+    if (path.parentPath.node.type === 'JSXExpressionContainer') {
+      if (path.parentPath.parentPath.node.name.name !== 'css') {
+        return
+      }
+    } else if (path.parentPath.node.type === 'TaggedTemplateExpression') {
+      const { tag } = path.parentPath.node
+      // Get the identifier for styled in either styled.View`...` or styled(View)`...`
+      // Note we aren't checking the name of the callee
+      const callee = tagTypes[tag.type](tag)
+      if (callee.type !== 'Identifier') return
 
-    // Get the identifier for styled in either styled.View`...` or styled(View)`...`
-    // Note we aren't checking the name of the callee
-    const callee = tagTypes[tag.type](tag)
-    if (callee.type !== 'Identifier') return
+      // Find the import statement for the `styled` part
+      const importSpecifier = _.get(
+        [callee.name, 0, 'parentPath'],
+        path.scope.getBindings()
+      )
+      if (
+        !_.includes(_.get(['value', 'type'], importSpecifier), importSpecifiers)
+      )
+        return
+      const importDeclaration = importSpecifier.parentPath
+      const source = importDeclaration.node.source.value
+      // And make sure it's only for emotion
+      if (source.indexOf('emotion') === -1) return
 
-    // Find the import statement for the `styled` part
-    const importSpecifier = _.get(
-      [callee.name, 0, 'parentPath'],
-      path.scope.getBindings()
-    )
-    if (
-      !_.includes(_.get(['value', 'type'], importSpecifier), importSpecifiers)
-    )
+      if (!(tag.type in tagTypes)) return
+    } else {
       return
-    const importDeclaration = importSpecifier.parentPath
-    const source = importDeclaration.node.source.value
-    // And make sure it's only for styled-components/native
-    if (source.indexOf('emotion') === -1) return
+    }
 
-    const { quasis, expressions } = quasi
+    const { quasis, expressions } = path.node
     // Substitute all ${interpolations} with arbitrary test that we can find later
     // This is so we can shove it in postCSS
     const substitutionNames = expressions.map(
@@ -93,13 +101,8 @@ module.exports = (file, api) => {
     )
     const newQuasi = j.templateLiteral(newQuasis, newExpressions)
 
-    const newTaggedTemplateExpression = j.taggedTemplateExpression(
-      tag,
-      newQuasi
-    )
-
     // Drop in the new tagged template expression
-    j(path).replaceWith(newTaggedTemplateExpression)
+    j(path).replaceWith(newQuasi)
   })
 
   return ast.toSource()

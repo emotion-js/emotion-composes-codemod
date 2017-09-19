@@ -45,7 +45,8 @@ other.View`
   display: flex;
 `;
 
-<div css={`${something}; display: flex;`} />
+<div css={`
+  ${something}; display: flex;`} />
 
 // Doesn't incorrectly scope
 function test(styled) {
