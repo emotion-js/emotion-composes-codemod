@@ -28,4 +28,4 @@ css`
 
 # Caveats
 
-Random interpolations do not support regular class names like composes.
+Random interpolations do not support interpolating regular class names like composes.
