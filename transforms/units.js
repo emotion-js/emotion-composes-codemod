@@ -54,8 +54,10 @@ module.exports = (file, api) => {
     const substitutionMap = _.fromPairs(_.zip(substitutionNames, expressions))
     // Transform all simple values
     const root = postcss.parse(cssText)
+    let hasComposes = false
     root.walkDecls(decl => {
       if (decl.prop === 'composes') {
+        hasComposes = true
         decl.replaceWith.apply(
           decl,
           decl.value
@@ -65,7 +67,7 @@ module.exports = (file, api) => {
         )
       }
     })
-
+    if (hasComposes === false) return
     const nextCssText = '\n  ' + root.toString()
 
     const substititionNames = Object.keys(substitutionMap)
